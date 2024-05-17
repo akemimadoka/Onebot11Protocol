@@ -1,0 +1,26 @@
+[project]
+name = "Onebot11Protocol"
+version = "0.1.0"
+description = "A protocol library for onebot11"
+authors = [
+    {name = "akemimadoka", email = "chino@hotococoa.moe"},
+]
+dependencies = [
+    "pydantic"
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest"
+]
