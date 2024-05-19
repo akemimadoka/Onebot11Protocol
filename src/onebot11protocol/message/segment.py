@@ -1,6 +1,5 @@
-from typing import Annotated, Any, Literal, Optional, Union
-from ..event.base import EventBase
-from pydantic import BeforeValidator, Field, BaseModel, ValidationInfo
+from typing import Annotated, Literal, Optional, Union
+from pydantic import Field, BaseModel
 
 
 class TextData(BaseModel):

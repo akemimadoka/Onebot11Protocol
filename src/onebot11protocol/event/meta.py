@@ -1,7 +1,7 @@
 from typing import Annotated, Literal, Union
 from .base import Event, EventBase
 from pydantic import Field
-from ..api.public import Status
+from ..api.shared import Status
 
 
 @Event("meta", "meta_event_type")

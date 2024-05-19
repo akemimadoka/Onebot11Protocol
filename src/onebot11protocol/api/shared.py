@@ -1,3 +1,6 @@
+from pydantic import BaseModel, ConfigDict
+
+
 APIArgsMap: dict[str, type] = {}
 
 def API(name: str):
@@ -13,3 +16,10 @@ def APIResp(name: str):
         APIRespMap[name] = respType
         return respType
     return decorator
+
+
+class Status(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    online: bool
+    good: bool

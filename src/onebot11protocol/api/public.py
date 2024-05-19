@@ -1,5 +1,5 @@
 from typing import Annotated, Literal, Optional, Union
-from .shared import API, APIResp
+from .shared import API, APIResp, Status
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 from ..message import Message
 from ..event.message import PrivateSenderInfo, GroupSenderInfo, AnonymousInfo
@@ -508,13 +508,6 @@ class CanSendImageResp(BaseModel):
 @APIResp("can_send_record")
 class CanSendRecordResp(BaseModel):
     yes: bool
-
-
-class Status(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    online: bool
-    good: bool
 
 
 @APIResp("get_status")

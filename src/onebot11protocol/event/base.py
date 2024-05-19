@@ -20,7 +20,7 @@ MessageTypeQuickOperationMap: dict[str, dict[str, type]] = {}
 def Event(postType: str, discriminatorName: str):
     def decorator(event: type):
         EventDiscriminatorMap[postType] = discriminatorName
-        event.__annotations__["post_type"] = Literal[(postType,)]
+        event.__annotations__["post_type"] = Literal[postType]
         event.post_type = postType
         return event
     return decorator
