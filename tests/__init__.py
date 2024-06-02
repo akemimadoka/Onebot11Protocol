@@ -6,7 +6,7 @@ from onebot11protocol.event import *
 from onebot11protocol.event.message import *
 
 from onebot11protocol.api.hidden import HandleQuickOperationReq
-from onebot11protocol.message.segment import TextData, TextSegment
+from onebot11protocol.message.segment import DataSegmentMap, FaceData, MessageBuilder, TextData, TextSegment
 
 
 def test_models():
@@ -24,6 +24,9 @@ def test_models():
     # SendPrivateMsgResp.model_validate_json("")
     GroupMessageEvent.model_validate({'self_id': 1, 'user_id': 2, 'time': 3, 'message_id': 4, 'message_seq': 5, 'real_id': 6, 'message_type': 'group', 'sender': {'user_id': 2, 'nickname': '测试', 'card': '', 'role': 'owner'},
                                      'raw_message': '[CQ:image,file=xxx.gif,url=xxx]', 'font': 14, 'sub_type': 'normal', 'message': [], 'message_format': 'array', 'post_type': 'message', 'group_id': 114514})
+
+    print(TextSegment(data=TextData(text="abc")).model_dump())
+    print(MessageBuilder().add(TextData(text="Hello")).add(FaceData(id="123")).finish())
 
     # async with WebSocketCommunication().connect(WebSocketEndpoint(url="ws://127.0.0.1:3001")) as session:
     #     def send():

@@ -1,23 +1,57 @@
 from typing import Annotated, Literal, Optional, Union
 from pydantic import Field, BaseModel
 
+DataSegmentMap: dict[type, type] = {}
+
+
+# 一个 Segment 可能对应多个 DataType，但是一个 DataType 只能对应一个 Segment
+class SegmentBase[Name, DataType](BaseModel):
+    def __class_getitem__(cls, typeParameters):
+        assert isinstance(typeParameters, tuple) and len(
+            typeParameters) == 2, "Invalid type parameters"
+        nameLiteral, dataType = typeParameters
+        name = nameLiteral.__args__[0]
+
+        return type(f"{name.title()}SegmentBase", (SegmentBase,), {
+            "type": name,
+            "__annotations__": {
+                "type": nameLiteral,
+                "data": dataType,
+            },
+        })
+
+    def __init_subclass__(cls, **kwargs):
+        if cls.__name__.endswith("Base"):
+            # 生成的类
+            return
+
+        dataType = cls.__mro__[1].__annotations__["data"]
+        if hasattr(dataType, "__args__"):
+            if dataType.__name__ == "Annotated":
+                dataType = dataType.__args__[0]
+            assert dataType.__name__ == "Union"
+            # 是 Union
+            DataSegmentMap.update((singleDataType, cls)
+                                  for singleDataType in dataType.__args__)
+        else:
+            # 是单个类型
+            DataSegmentMap[dataType] = cls
+
 
 class TextData(BaseModel):
     text: str
 
 
-class TextSegment(BaseModel):
-    type: Literal["text"] = "text"
-    data: TextData
+class TextSegment(SegmentBase[Literal["text"], TextData]):
+    pass
 
 
 class FaceData(BaseModel):
     id: str
 
 
-class FaceSegment(BaseModel):
-    type: Literal["face"] = "face"
-    data: FaceData
+class FaceSegment(SegmentBase[Literal["face"], FaceData]):
+    pass
 
 
 class ImageDataBase(BaseModel):
@@ -35,9 +69,8 @@ class SendingImageData(ImageDataBase):
     timeout: int
 
 
-class ImageSegment(BaseModel):
-    type: Literal["image"] = "image"
-    data: Union[ReceivedImageData, SendingImageData]
+class ImageSegment(SegmentBase[Literal["image"], Union[ReceivedImageData, SendingImageData]]):
+    pass
 
 
 class RecordDataBase(BaseModel):
@@ -56,9 +89,8 @@ class SendingRecordData(RecordDataBase):
     timeout: int
 
 
-class RecordSegment(BaseModel):
-    type: Literal["record"] = "record"
-    data: Union[ReceivedRecordData, SendingRecordData]
+class RecordSegment(SegmentBase[Literal["record"], Union[ReceivedRecordData, SendingRecordData]]):
+    pass
 
 
 class VideoDataBase(BaseModel):
@@ -75,37 +107,32 @@ class SendingVideoData(VideoDataBase):
     timeout: int
 
 
-class VideoSegment(BaseModel):
-    type: Literal["video"] = "video"
-    data: Union[ReceivedVideoData, SendingVideoData]
+class VideoSegment(SegmentBase[Literal["video"], Union[ReceivedVideoData, SendingVideoData]]):
+    pass
 
 
 class AtData(BaseModel):
     qq: str
 
 
-class AtSegment(BaseModel):
-    type: Literal["at"] = "at"
-    data: AtData
+class AtSegment(SegmentBase[Literal["at"], AtData]):
+    pass
 
 
 class EmptyData(BaseModel):
     pass
 
 
-class RpsSegment(BaseModel):
-    type: Literal["rps"] = "rps"
-    data: EmptyData
+class RpsSegment(SegmentBase[Literal["rps"], EmptyData]):
+    pass
 
 
-class DiceSegment(BaseModel):
-    type: Literal["dice"] = "dice"
-    data: EmptyData
+class DiceSegment(SegmentBase[Literal["dice"], EmptyData]):
+    pass
 
 
-class ShakeSegment(BaseModel):
-    type: Literal["shake"] = "shake"
-    data: EmptyData
+class ShakeSegment(SegmentBase[Literal["shake"], EmptyData]):
+    pass
 
 
 class PokeDataBase(BaseModel):
@@ -121,9 +148,8 @@ class SendingPokeData(PokeDataBase):
     pass
 
 
-class PokeSegment(BaseModel):
-    type: Literal["poke"] = "poke"
-    data: Union[ReceivedPokeData, SendingPokeData]
+class PokeSegment(SegmentBase[Literal["poke"], Union[ReceivedPokeData, SendingPokeData]]):
+    pass
 
 
 class ReceivedAnonymousData(BaseModel):
@@ -134,9 +160,8 @@ class SendingAnonymousData(BaseModel):
     ignore: Literal[0, 1]
 
 
-class AnonymousSegment(BaseModel):
-    type: Literal["anonymous"] = "anonymous"
-    data: Union[ReceivedAnonymousData, SendingAnonymousData]
+class AnonymousSegment(SegmentBase[Literal["anonymous"], Union[ReceivedAnonymousData, SendingAnonymousData]]):
+    pass
 
 
 class ShareDataBase(BaseModel):
@@ -154,9 +179,8 @@ class SendingShareData(ShareDataBase):
     image: Optional[str] = None
 
 
-class ShareSegment(BaseModel):
-    type: Literal["share"] = "share"
-    data: Union[ReceivedShareData, SendingShareData]
+class ShareSegment(SegmentBase[Literal["share"], Union[ReceivedShareData, SendingShareData]]):
+    pass
 
 
 class QQContactInfo(BaseModel):
@@ -169,10 +193,8 @@ class GroupContactInfo(BaseModel):
     id: str
 
 
-class ContactSegment(BaseModel):
-    type: Literal["contact"] = "contact"
-    data: Annotated[Union[QQContactInfo, GroupContactInfo],
-                    Field(..., discriminator="type")]
+class ContactSegment(SegmentBase[Literal["contact"], Annotated[Union[QQContactInfo, GroupContactInfo], Field(..., discriminator="type")]]):
+    pass
 
 
 class LocationDataBase(BaseModel):
@@ -190,9 +212,8 @@ class SendingLocationData(LocationDataBase):
     content: Optional[str] = None
 
 
-class LocationSegment(BaseModel):
-    type: Literal["location"] = "location"
-    data: Union[ReceivedLocationData, SendingLocationData]
+class LocationSegment(SegmentBase[Literal["location"], Union[ReceivedLocationData, SendingLocationData]]):
+    pass
 
 
 class SimpleMusicDataBase(BaseModel):
@@ -224,27 +245,24 @@ MusicData = Annotated[Union[QQMusicData, NeteaseMusicData, XMMusicData,
                             CustomMusicData], Field(..., discriminator="type")]
 
 
-class MusicSegment(BaseModel):
-    type: Literal["music"] = "music"
-    data: MusicData
+class MusicSegment(SegmentBase[Literal["music"], MusicData]):
+    pass
 
 
 class ReplyData(BaseModel):
     id: str
 
 
-class ReplySegment(BaseModel):
-    type: Literal["reply"] = "reply"
-    data: ReplyData
+class ReplySegment(SegmentBase[Literal["reply"], ReplyData]):
+    pass
 
 
 class ForwardData(BaseModel):
     id: str
 
 
-class ForwardSegment(BaseModel):
-    type: Literal["forward"] = "forward"
-    data: ForwardData
+class ForwardSegment(SegmentBase[Literal["forward"], ForwardData]):
+    pass
 
 
 class NodeData(BaseModel):
@@ -257,30 +275,39 @@ class NodeCustomData(BaseModel):
     content: "Message"
 
 
-class NodeSegment(BaseModel):
-    type: Literal["node"] = "node"
-    data: Union[NodeData, NodeCustomData]
+class NodeSegment(SegmentBase[Literal["node"], Union[NodeData, NodeCustomData]]):
+    pass
 
 
 class XMLData(BaseModel):
     data: str
 
 
-class XMLSegment(BaseModel):
-    type: Literal["xml"] = "xml"
-    data: XMLData
+class XMLSegment(SegmentBase[Literal["xml"], XMLData]):
+    pass
 
 
 class JSONData(BaseModel):
     data: str
 
 
-class JSONSegment(BaseModel):
-    type: Literal["json"] = "json"
-    data: JSONData
+class JSONSegment(SegmentBase[Literal["json"], JSONData]):
+    pass
 
 
 Segment = Annotated[Union[TextSegment, FaceSegment, ImageSegment, RecordSegment, VideoSegment, AtSegment, RpsSegment, DiceSegment, ShakeSegment, PokeSegment, AnonymousSegment,
                           ShareSegment, ContactSegment, LocationSegment, MusicSegment, ReplySegment, ForwardSegment, NodeSegment, XMLSegment, JSONSegment], Field(..., discriminator="type")]
 
 Message = list[Segment]
+
+
+class MessageBuilder:
+    content = Message()
+
+    def add(self, data):
+        segmentType = DataSegmentMap[type(data)]
+        self.content.append(segmentType(data=data))
+        return self
+
+    def finish(self):
+        return self.content
