@@ -10,14 +10,14 @@ class MessageEventBase(EventBase):
 
 
 class PrivateSenderInfo(BaseModel):
-    user_id: Optional[int]
-    nickname: Optional[str]
-    sex: Optional[Literal["male", "female", "unknown"]]
-    age: Optional[int]
+    user_id: Optional[int] = None
+    nickname: Optional[str] = None
+    sex: Optional[Literal["male", "female", "unknown"]] = None
+    age: Optional[int] = None
 
 
 class PrivateMessageEvent(MessageEventBase):
-    message_type: Literal["private"] = "private"
+    message_type: Literal["private"]
     sub_type: Literal["friend", "group", "other"]
     message_id: int
     user_id: int
@@ -40,15 +40,15 @@ class AnonymousInfo(BaseModel):
 
 
 class GroupSenderInfo(BaseModel):
-    user_id: Optional[int]
-    nickname: Optional[str]
-    card: Optional[str]
-    sex: Optional[Literal["male", "female", "unknown"]]
-    age: Optional[int]
-    area: Optional[str]
-    level: Optional[str]
-    role: Optional[Literal["owner", "admin", "member"]]
-    title: Optional[str]
+    user_id: Optional[int] = None
+    nickname: Optional[str] = None
+    card: Optional[str] = None
+    sex: Optional[Literal["male", "female", "unknown"]] = None
+    age: Optional[int] = None
+    area: Optional[str] = None
+    level: Optional[str] = None
+    role: Optional[Literal["owner", "admin", "member"]] = None
+    title: Optional[str] = None
 
 
 class GroupMessageEvent(MessageEventBase):
@@ -57,7 +57,7 @@ class GroupMessageEvent(MessageEventBase):
     message_id: int
     group_id: int
     user_id: int
-    anonymous: Optional[AnonymousInfo]
+    anonymous: Optional[AnonymousInfo] = None
     message: Message
     raw_message: str
     font: int

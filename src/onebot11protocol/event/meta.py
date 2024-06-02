@@ -4,7 +4,7 @@ from pydantic import Field
 from ..api.shared import Status
 
 
-@Event("meta", "meta_event_type")
+@Event("meta_event", "meta_event_type")
 class MetaEventBase(EventBase):
     pass
 

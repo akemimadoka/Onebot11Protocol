@@ -22,7 +22,7 @@ class FaceSegment(BaseModel):
 
 class ImageDataBase(BaseModel):
     file: str
-    type: Optional[Literal["flash"]]
+    type: Optional[Literal["flash"]] = None
 
 
 class ReceivedImageData(ImageDataBase):
@@ -50,7 +50,7 @@ class ReceivedRecordData(RecordDataBase):
 
 
 class SendingRecordData(RecordDataBase):
-    magic: Optional[Literal[0, 1]]
+    magic: Optional[Literal[0, 1]] = None
     cache: Literal[0, 1]
     proxy: Literal[0, 1]
     timeout: int
@@ -150,8 +150,8 @@ class ReceivedShareData(ShareDataBase):
 
 
 class SendingShareData(ShareDataBase):
-    content: Optional[str]
-    image: Optional[str]
+    content: Optional[str] = None
+    image: Optional[str] = None
 
 
 class ShareSegment(BaseModel):
@@ -186,8 +186,8 @@ class ReceivedLocationData(LocationDataBase):
 
 
 class SendingLocationData(LocationDataBase):
-    title: Optional[str]
-    content: Optional[str]
+    title: Optional[str] = None
+    content: Optional[str] = None
 
 
 class LocationSegment(BaseModel):
@@ -216,8 +216,8 @@ class CustomMusicData(BaseModel):
     url: str
     audio: str
     title: str
-    content: Optional[str]
-    image: Optional[str]
+    content: Optional[str] = None
+    image: Optional[str] = None
 
 
 MusicData = Annotated[Union[QQMusicData, NeteaseMusicData, XMMusicData,

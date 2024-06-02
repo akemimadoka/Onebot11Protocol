@@ -1,9 +1,10 @@
-from pydantic import BaseModel, model_validator
+from typing import Literal
+from pydantic import model_validator
 from ..event import Event, QuickOperationsUnion, EventDiscriminatorMap, MessageTypeQuickOperationMap
-from .shared import API
+from .shared import APIRequest, EmptyResp
 
-@API(".handle_quick_operation")
-class HandleQuickOperationArgs(BaseModel):
+
+class HandleQuickOperationReq(APIRequest[Literal[".handle_quick_operation"], EmptyResp]):
     context: Event
     operation: QuickOperationsUnion
 

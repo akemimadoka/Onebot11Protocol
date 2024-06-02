@@ -1,12 +1,15 @@
 from typing import Annotated, Literal, Optional, Union
-from .shared import API, APIResp, Status
+from .shared import APIRequest, EmptyResp, Status
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 from ..message import Message
 from ..event.message import PrivateSenderInfo, GroupSenderInfo, AnonymousInfo
 
 
-@API("send_private_msg")
-class SendPrivateMsgArgs(BaseModel):
+class SendPrivateMsgResp(BaseModel):
+    message_id: int
+
+
+class SendPrivateMsgReq(APIRequest[Literal["send_private_msg"], SendPrivateMsgResp]):
     user_id: int
     message: Message
     auto_escape: Optional[bool] = None
@@ -17,33 +20,12 @@ class SendPrivateMsgArgs(BaseModel):
     """
 
 
-@APIResp("send_private_msg")
-class SendPrivateMsgResp(BaseModel):
-    message_id: int
-
-
-@API("send_group_msg")
-class SendGroupMsgArgs(BaseModel):
-    group_id: int
-    message: Message
-    auto_escape: Optional[bool] = None
-    """
-    默认值为 false
-
-    消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
-    """
-
-
-@APIResp("send_group_msg")
 class SendGroupMsgResp(BaseModel):
     message_id: int
 
 
-@API("send_msg")
-class SendMsgPrivateArgs(BaseModel):
-    message_type: Optional[Literal["private", "group"]]
-    user_id: Optional[int]
-    group_id: Optional[int]
+class SendGroupMsgReq(APIRequest[Literal["send_group_msg"], SendGroupMsgResp]):
+    group_id: int
     message: Message
     auto_escape: Optional[bool] = None
     """
@@ -77,24 +59,16 @@ class SendMsgGroupArgs(BaseModel):
     """
 
 
-@API("send_msg")
-class SendMsgArgs(RootModel):
-    root: Annotated[Union[SendMsgPrivateArgs, SendMsgGroupArgs],
-                    Field(..., discriminator="message_type")]
-
-
-@APIResp("send_msg")
 class SendMsgResp(BaseModel):
     message_id: int
 
 
-@API("delete_msg")
-class DeleteMsgArgs(BaseModel):
-    message_id: int
+class SendMsgArgs(APIRequest[Literal["send_msg"], SendMsgResp], RootModel):
+    root: Annotated[Union[SendMsgPrivateArgs, SendMsgGroupArgs],
+                    Field(..., discriminator="message_type")]
 
 
-@API("get_msg")
-class GetMsgArgs(BaseModel):
+class DeleteMsgReq(APIRequest[Literal["delete_msg"], EmptyResp]):
     message_id: int
 
 
@@ -114,24 +88,24 @@ class GetMsgGroupResp(BaseModel):
     sender: GroupSenderInfo
 
 
-@APIResp("get_msg")
 class GetMsgResp(RootModel):
     root: Annotated[Union[GetMsgPrivateResp, GetMsgGroupResp],
                     Field(..., discriminator="message_type")]
 
 
-@API("get_forward_msg")
-class GetForwardMsgArgs(BaseModel):
-    id: str
+class GetMsgReq(APIRequest[Literal["get_msg"], GetMsgResp]):
+    message_id: int
 
 
-@APIResp("get_forward_msg")
 class GetForwardMsgResp(BaseModel):
     message: Message
 
 
-@API("send_like")
-class SendLikeArgs(BaseModel):
+class GetForwardMsgReq(APIRequest[Literal["get_forward_msg"], GetForwardMsgResp]):
+    id: str
+
+
+class SendLikeReq(APIRequest[Literal["send_like"], EmptyResp]):
     user_id: int
     times: Optional[int] = None
     """
@@ -141,8 +115,7 @@ class SendLikeArgs(BaseModel):
     """
 
 
-@API("set_group_kick")
-class SetGroupKickArgs(BaseModel):
+class SetGroupKickReq(APIRequest[Literal["set_group_kick"], EmptyResp]):
     group_id: int
     user_id: int
     reject_add_request: Optional[bool] = None
@@ -153,8 +126,7 @@ class SetGroupKickArgs(BaseModel):
     """
 
 
-@API("set_group_ban")
-class SetGroupBanArgs(BaseModel):
+class SetGroupBanReq(APIRequest[Literal["set_group_ban"], EmptyResp]):
     group_id: int
     user_id: int
     duration: Optional[int] = None
@@ -165,8 +137,7 @@ class SetGroupBanArgs(BaseModel):
     """
 
 
-@API("set_group_anonymous_ban")
-class SetGroupAnonymousBanArgs(BaseModel):
+class SetGroupAnonymousBanReq(APIRequest[Literal["set_group_anonymous_ban"], EmptyResp]):
     group_id: int
     anonymous: Optional[AnonymousInfo] = None
     anonymous_flag: Optional[str] = None
@@ -185,8 +156,7 @@ class SetGroupAnonymousBanArgs(BaseModel):
         return self
 
 
-@API("set_group_whole_ban")
-class SetGroupWholeBanArgs(BaseModel):
+class SetGroupWholeBanReq(APIRequest[Literal["set_group_whole_ban"], EmptyResp]):
     group_id: int
     enable: Optional[bool] = None
     """
@@ -196,8 +166,7 @@ class SetGroupWholeBanArgs(BaseModel):
     """
 
 
-@API("set_group_admin")
-class SetGroupAdminArgs(BaseModel):
+class SetGroupAdminReq(APIRequest[Literal["set_group_admin"], EmptyResp]):
     group_id: int
     user_id: int
     enable: Optional[bool] = None
@@ -208,8 +177,7 @@ class SetGroupAdminArgs(BaseModel):
     """
 
 
-@API("set_group_anonymous")
-class SetGroupAnonymousArgs(BaseModel):
+class SetGroupAnonymousReq(APIRequest[Literal["set_group_anonymous"], EmptyResp]):
     group_id: int
     enable: Optional[bool] = None
     """
@@ -219,8 +187,7 @@ class SetGroupAnonymousArgs(BaseModel):
     """
 
 
-@API("set_group_card")
-class SetGroupCardArgs(BaseModel):
+class SetGroupCardReq(APIRequest[Literal["set_group_card"], EmptyResp]):
     group_id: int
     user_id: str
     card: Optional[str] = None
@@ -231,14 +198,12 @@ class SetGroupCardArgs(BaseModel):
     """
 
 
-@API("set_group_name")
-class SetGroupNameArgs(BaseModel):
+class SetGroupNameReq(APIRequest[Literal["set_group_name"], EmptyResp]):
     group_id: int
     group_name: str
 
 
-@API("set_group_leave")
-class SetGroupLeave(BaseModel):
+class SetGroupLeaveReq(APIRequest[Literal["set_group_leave"], EmptyResp]):
     group_id: int
     is_dismiss: Optional[bool] = None
     """
@@ -248,8 +213,7 @@ class SetGroupLeave(BaseModel):
     """
 
 
-@API("set_group_special_title")
-class SetGroupSpecialTitleArgs(BaseModel):
+class SetGroupSpecialTitleReq(APIRequest[Literal["set_group_special_title"], EmptyResp]):
     group_id: int
     user_id: int
     special_title: Optional[str] = None
@@ -266,8 +230,7 @@ class SetGroupSpecialTitleArgs(BaseModel):
     """
 
 
-@API("set_friend_add_request")
-class SetFriendAddRequestArgs(BaseModel):
+class SetFriendAddRequestReq(APIRequest[Literal["set_friend_add_request"], EmptyResp]):
     flag: str
     approve: Optional[bool] = None
     """
@@ -283,8 +246,7 @@ class SetFriendAddRequestArgs(BaseModel):
     """
 
 
-@API("set_group_add_request")
-class SetGroupAddRequestArgs(BaseModel):
+class SetGroupAddRequestReq(APIRequest[Literal["set_group_add_request"], EmptyResp]):
     flag: str
     sub_type: Literal["add", "invite"]
     approve: Optional[bool] = None
@@ -301,14 +263,23 @@ class SetGroupAddRequestArgs(BaseModel):
     """
 
 
-@APIResp("get_login_info")
 class GetLoginInfoResp(BaseModel):
     user_id: int
     nickname: str
 
 
-@API("get_stranger_info")
-class GetStrangerInfoArgs(BaseModel):
+class GetLoginInfoReq(APIRequest[Literal["get_login_info"], GetLoginInfoResp]):
+    pass
+
+
+class GetStrangerInfoResp(BaseModel):
+    user_id: int
+    nickname: str
+    sex: Literal["male", "female", "unknown"]
+    age: int
+
+
+class GetStrangerInfoReq(APIRequest[Literal["get_stranger_info"], GetStrangerInfoResp]):
     user_id: int
     no_cache: Optional[bool] = None
     """
@@ -316,14 +287,6 @@ class GetStrangerInfoArgs(BaseModel):
 
     是否不使用缓存（使用缓存可能更新不及时，但响应更快）
     """
-
-
-@APIResp("get_stranger_info")
-class GetStrangerInfoResp(BaseModel):
-    user_id: int
-    nickname: str
-    sex: Literal["male", "female", "unknown"]
-    age: int
 
 
 class FriendInfo(BaseModel):
@@ -332,20 +295,12 @@ class FriendInfo(BaseModel):
     remark: str
 
 
-@APIResp("get_friend_list")
 class GetFriendListResp(RootModel):
     root: list[FriendInfo]
 
 
-@API("get_group_info")
-class GetGroupInfoArgs(BaseModel):
-    group_id: int
-    no_cache: Optional[bool] = None
-    """
-    默认值为 false
-
-    是否不使用缓存（使用缓存可能更新不及时，但响应更快）
-    """
+class GetFriendListReq(APIRequest[Literal["get_friend_list"], GetFriendListResp]):
+    pass
 
 
 class GroupInfo(BaseModel):
@@ -355,26 +310,26 @@ class GroupInfo(BaseModel):
     max_member_count: int
 
 
-@APIResp("get_group_info")
 class GetGroupInfoResp(GroupInfo):
     pass
 
 
-@APIResp("get_group_list")
-class GetGroupListResp(RootModel):
-    root: list[GroupInfo]
-
-
-@API("get_group_member_info")
-class GetGroupMemberInfoArgs(BaseModel):
+class GetGroupInfoReq(APIRequest[Literal["get_group_info"], GetGroupInfoResp]):
     group_id: int
-    user_id: int
     no_cache: Optional[bool] = None
     """
     默认值为 false
 
     是否不使用缓存（使用缓存可能更新不及时，但响应更快）
     """
+
+
+class GetGroupListResp(RootModel):
+    root: list[GroupInfo]
+
+
+class GetGroupListReq(APIRequest[Literal["get_group_list"], GetGroupListResp]):
+    pass
 
 
 class GroupMemberInfo(BaseModel):
@@ -395,26 +350,27 @@ class GroupMemberInfo(BaseModel):
     card_changable: bool
 
 
-@APIResp("get_group_member_info")
 class GetGroupMemberInfoResp(GroupMemberInfo):
     pass
 
 
-@API("get_group_member_list")
-class GetGroupMemberListArgs(BaseModel):
+class GetGroupMemberInfoReq(APIRequest[Literal["get_group_member_info"], GetGroupMemberInfoResp]):
     group_id: int
+    user_id: int
+    no_cache: Optional[bool] = None
+    """
+    默认值为 false
+
+    是否不使用缓存（使用缓存可能更新不及时，但响应更快）
+    """
 
 
-@APIResp("get_group_member_list")
 class GetGroupMemberListResp(RootModel):
     root: list[GroupMemberInfo]
 
 
-@API("get_group_honor_info")
-class GetGroupHonorInfoArgs(BaseModel):
+class GetGroupMemberListReq(APIRequest[Literal["get_group_member_list"], GetGroupMemberListResp]):
     group_id: int
-    type: Literal["talkative", "performer",
-                  "legend", "strong_newbie", "emotion", "all"]
 
 
 class CurrentTalkativeInfo(BaseModel):
@@ -431,7 +387,6 @@ class HonorUserInfo(BaseModel):
     description: str
 
 
-@APIResp("get_group_honor_info")
 class GetGroupHonorInfoResp(BaseModel):
     group_id: int
     current_talkative: Optional[CurrentTalkativeInfo]
@@ -442,28 +397,17 @@ class GetGroupHonorInfoResp(BaseModel):
     emotion_list: Optional[list[HonorUserInfo]]
 
 
-@API("get_cookies")
-class GetCookiesArgs(BaseModel):
-    domain: Optional[str] = None
-    """
-    默认值为空
-
-    需要获取 cookies 的域名
-    """
+class GetGroupHonorInfoReq(APIRequest[Literal["get_group_honor_info"], GetGroupHonorInfoResp]):
+    group_id: int
+    type: Literal["talkative", "performer",
+                  "legend", "strong_newbie", "emotion", "all"]
 
 
-@APIResp("get_cookies")
 class GetCookiesResp(BaseModel):
     cookies: str
 
 
-@APIResp("get_csrf_token")
-class GetCSRFTokenResp(BaseModel):
-    token: int
-
-
-@API("get_credentials")
-class GetCredentialsArgs(BaseModel):
+class GetCookiesReq(APIRequest[Literal["get_cookies"], GetCookiesResp]):
     domain: Optional[str] = None
     """
     默认值为空
@@ -472,50 +416,70 @@ class GetCredentialsArgs(BaseModel):
     """
 
 
-@APIResp("get_credentials")
+class GetCSRFTokenResp(BaseModel):
+    token: int
+
+
+class GetCSRFTokenReq(APIRequest[Literal["get_csrf_token"], GetCSRFTokenResp]):
+    pass
+
+
 class GetCredentialsResp(BaseModel):
     cookies: str
     token: int
 
 
-@API("get_record")
-class GetRecordArgs(BaseModel):
+class GetCredentialsReq(APIRequest[Literal["get_credentials"], GetCredentialsResp]):
+    domain: Optional[str] = None
+    """
+    默认值为空
+
+    需要获取 cookies 的域名
+    """
+
+
+class GetRecordResp(BaseModel):
+    file: str
+
+
+class GetRecordReq(APIRequest[Literal["get_record"], GetRecordResp]):
     file: str
     out_format: Literal["mp3", "amr", "wma",
                         "m4a", "spx", "ogg", "wav", "flac"]
 
 
-@APIResp("get_record")
-class GetRecordResp(BaseModel):
-    file: str
-
-
-@API("get_image")
-class GetImageArgs(BaseModel):
-    file: str
-
-
-@APIResp("get_image")
 class GetImageResp(BaseModel):
     file: str
 
 
-@APIResp("can_send_image")
+class GetImageReq(APIRequest[Literal["get_image"], GetImageResp]):
+    file: str
+
+
 class CanSendImageResp(BaseModel):
     yes: bool
 
 
-@APIResp("can_send_record")
+class CanSendImageReq(APIRequest[Literal["can_send_image"], CanSendImageResp]):
+    pass
+
+
 class CanSendRecordResp(BaseModel):
     yes: bool
 
 
-@APIResp("get_status")
+class CanSendRecordReq(APIRequest[Literal["can_send_record"], CanSendRecordResp]):
+    pass
+
+
 class GetStatusResp(Status):
     pass
 
 
-@APIResp("get_version_info")
+class GetStatusReq(APIRequest[Literal["get_status"], GetStatusResp]):
+    pass
+
+
 class GetVersionInfoResp(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -524,8 +488,11 @@ class GetVersionInfoResp(BaseModel):
     protocol_version: str
 
 
-@API("set_restart")
-class SetRestartArgs(BaseModel):
+class GetVersionInfoReq(APIRequest[Literal["get_version_info"], GetVersionInfoResp]):
+    pass
+
+
+class SetRestartReq(APIRequest[Literal["set_restart"], EmptyResp]):
     delay: Optional[int] = None
     """
     默认值为 0
@@ -533,4 +500,6 @@ class SetRestartArgs(BaseModel):
     要延迟的毫秒数，如果默认情况下无法重启，可以尝试设置延迟为 2000 左右
     """
 
-# clean_cache 无参无响应数据
+
+class CleanCacheReq(APIRequest[Literal["clean_cache"], EmptyResp]):
+    pass
