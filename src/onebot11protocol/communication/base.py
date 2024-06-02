@@ -13,7 +13,7 @@ class CommunicationSessionBase(ABC):
         pass
 
     @abstractmethod
-    async def listen(self) -> Event:
+    async def run(self):
         pass
 
     @abstractmethod
@@ -34,7 +34,13 @@ class CommunicationSessionBase(ABC):
         await self.disconnect()
 
 
+class EventHandler(ABC):
+    @abstractmethod
+    async def on_event(self, session: CommunicationSessionBase, event: Event):
+        pass
+
+
 class CommunicationBase[TEndpoint, TSession](ABC):
     @abstractmethod
-    async def connect(self, endpoint: TEndpoint) -> TSession:
+    async def create(self, endpoint: TEndpoint, eventHandler: EventHandler) -> TSession:
         pass

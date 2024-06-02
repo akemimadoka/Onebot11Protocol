@@ -311,3 +311,7 @@ class MessageBuilder:
 
     def finish(self):
         return self.content
+
+
+def build_message(*args):
+    return [DataSegmentMap[type(data)](data=data) for data in args]
