@@ -78,6 +78,7 @@ class GetMsgPrivateResp(BaseModel):
     message_id: int
     real_id: int
     sender: PrivateSenderInfo
+    message: Message
 
 
 class GetMsgGroupResp(BaseModel):
@@ -86,6 +87,7 @@ class GetMsgGroupResp(BaseModel):
     message_id: int
     real_id: int
     sender: GroupSenderInfo
+    message: Message
 
 
 class GetMsgResp(RootModel):
