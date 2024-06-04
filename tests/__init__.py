@@ -27,16 +27,3 @@ def test_models():
 
     print(TextSegment(data=TextData(text="abc")).model_dump())
     print(MessageBuilder().add(TextData(text="Hello")).add(FaceData(id="123")).finish())
-
-    # async with WebSocketCommunication().connect(WebSocketEndpoint(url="ws://127.0.0.1:3001")) as session:
-    #     def send():
-    #         async def work():
-    #             # IDE 应当能识别到返回类型为 SendGroupMsgResp
-    #             resp = await session.send(SendGroupMsgReq(group_id=114514, message=[TextSegment(data=TextData(text="Hello"))]))
-    #             print(resp)
-    #         session.loop.create_task(work())
-    #     session.loop.call_later(5, send)
-    #     while True:
-    #         event = await session.listen()
-    #         if isinstance(event, GroupMessageEvent):
-    #             print(event.message)

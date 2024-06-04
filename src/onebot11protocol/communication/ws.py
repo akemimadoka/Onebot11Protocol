@@ -2,7 +2,7 @@ import asyncio
 from dataclasses import dataclass
 import json
 from typing import Any, Optional, TypedDict
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 import websockets
 import websockets.connection
 
@@ -53,13 +53,22 @@ class WebSocketSession(CommunicationSessionBase):
                 jsonData = json.loads(data)
                 if "self_id" in jsonData:
                     # 是 event
-                    event: Event = TypeAdapter(Event).validate_python(jsonData)
+                    try:
+                        event: Event = TypeAdapter(
+                            Event).validate_python(jsonData)
+                    except ValidationError as e:
+                        print(f"Cannot parse event from data {jsonData}: {e}, discarding")
+                        continue
                     self.loop.create_task(
                         self.event_handler.on_event(self, event))
                 else:
                     # 是 api 的响应
                     jsonData: RawAPIResponse
-                    apiIndex = int(jsonData["echo"])
+                    try:
+                        apiIndex = int(jsonData["echo"])
+                    except ValueError as e:
+                        print(f"Ill formed echo({jsonData["echo"]}): {e}, discarding")
+                        continue
                     future = self.waiting_api_map[apiIndex]
                     future.set_result(jsonData)
                     del self.waiting_api_map[apiIndex]
