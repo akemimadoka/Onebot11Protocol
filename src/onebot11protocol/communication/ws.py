@@ -104,8 +104,8 @@ class WebSocketSession(CommunicationSessionBase):
         await self.websocket.send(quickOperationContent)
 
     async def connect(self):
-        self.websocket = await websockets.connect(self.endpoint.url, extra_headers={
-            "Authorization": f"Bearer {self.endpoint.access_token}"} if self.endpoint.access_token else None, loop=self.loop)
+        self.websocket = await websockets.connect(self.endpoint.url, additional_headers={
+            "Authorization": f"Bearer {self.endpoint.access_token}"} if self.endpoint.access_token else None)
 
     async def disconnect(self):
         await self.websocket.close()
